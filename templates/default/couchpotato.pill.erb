@@ -1,0 +1,36 @@
+#
+# Warning!! 
+#  Any local changes may be overwritten. File is managed by Opscode Chef.
+#
+Bluepill.application("couchpotato") do |app|
+
+  app.process("server") do |proc|
+
+    proc.uid = "<%= node["couchpotato"]["user"] %>"
+    proc.gid = "<%= node["couchpotato"]["group"] %>"
+
+    proc.working_dir = "<%= node["couchpotato"]["install_dir"] %>"
+    proc.start_command = "python CouchPotato.py --config_file <%= node["couchpotato"]["config_dir"] %>/couchpotato.ini --data_dir <%= node["couchpotato"]["data_dir"] %> --console_log --pid_file <%= node["couchpotato"]["data_dir"] %>/couchpotato.pid"
+
+    # We're letting Bluepill daemonize for us
+    proc.daemonize = false
+
+    # Logging
+    proc.stdout = proc.stderr = "<%= node["couchpotato"]["log_dir"] %>/couchpotato.log"
+
+    # Process Monitoring
+    proc.checks :cpu_usage, :every => 30.seconds, :below => 85, :times => 10        
+    proc.checks :mem_usage, :every => 30.seconds, :below => 1024.megabytes, :times => [3,5]
+    proc.checks :flapping, :times => 2, :within => 30.seconds, :retry_in => 7.seconds
+
+    # Child Processes
+    proc.monitor_children do |child_proc|
+      child_proc.checks :cpu_usage, :every => 30.seconds, :below => 50, :times => 10
+      child_proc.checks :mem_usage, :every => 30.seconds, :below => 256.megabytes, :times => [3,5]
+      child_proc.stop_command = "kill -QUIT {{PID}}"
+    end
+
+  end
+
+end
+

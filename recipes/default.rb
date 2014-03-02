@@ -64,5 +64,5 @@ when 'bluepill'
   end
 
 else
-  Chef::Log.warn("couchpotato::service >> unable to determine valid init_style, manual intervention will be needed to start Sickbeard as a service.")
+  Chef::Log.warn("couchpotato::service >> unable to determine valid init_style, manual intervention will be needed to start Couchpotato as a service.")
 end

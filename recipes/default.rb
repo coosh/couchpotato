@@ -63,6 +63,25 @@ when 'bluepill'
     action [:enable, :load, :start]
   end
 
+when 'init.d'
+
+  service "couchpotato" do
+    action [ :enable, :start ]
+    supports :status => true, :start => true, :stop => true, :restart => true
+  end
+
+  template "/etc/init.d/couchpotato" do
+    source "couchpotato-init.d.erb"
+    mode 0755
+    notifies :restart, 'service[couchpotato]'
+  end
+
+  template "/etc/defaults/couchpotato" do
+    source "couchpotato-defaults.erb"
+    mode 0644
+    notifies :restart, 'service[couchpotato]'
+  end
+
 else
   Chef::Log.warn("couchpotato::service >> unable to determine valid init_style, manual intervention will be needed to start Couchpotato as a service.")
 end
